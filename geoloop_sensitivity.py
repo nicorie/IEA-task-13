@@ -2,11 +2,17 @@
 """
 Created on Fri Sep 15 12:52:48 2023
 
+TODO: be crystal clear about what 0-100% means
+    eg., does the 5th point from west really mean 50% between TT and edge
+    BR doesnt put sensors on the absolute module edges
+    eg., for 21 sensors and module len 2.1m, distance between sensors is 2.1/22 = 0.095 between points
+    so the first sensor is 0.095 m from the edge, not on the module edge.
+    
+
 @author: nri
 """
 
 import bifacial_radiance
-import pandas as pd
 import numpy as np
 import os
 
@@ -29,9 +35,6 @@ nMods, nRows = 22, 5
 panelx, panely = 1.3, 2.1
 moduletype = 'Big-Module'
 zgap, ygap, xgap = 0.115, 0, 0
-
-materialpav = 'Tracker_Steel'
-Rrefl, Grefl, Brefl = 0.3, 0.25, 0.2
 
 testfolder = os.path.abspath(r'C:\Users\NRI\Bifacial_Radiance_Files')
 
@@ -58,10 +61,6 @@ for shape in shapes:
 
                 metdata = tracker.readWeatherFile(weatherFile=epwfile)
 
-                tracker.addMaterial(material=materialpav, Rrefl=Rrefl,
-                                    Grefl=Grefl, Brefl=Brefl, specularity=0.03,
-                                    roughness=0.15)
-
                 mymodule = tracker.makeModule(name=moduletype, x=panelx,
                                               y=panely, xgap=xgap, ygap=ygap,
                                               zgap=zgap, numpanels=1,
@@ -70,11 +69,25 @@ for shape in shapes:
                 mymodule.addTorquetube(diameter=diameter, tubetype=shape,
                                        material='Tracker_Steel')
 
+                # extend the torque tube by 1m in north and 1m in south
+                rad_file = testfolder+'\objects'+f'\{moduletype}.rad'
+
+                with open(rad_file, 'r') as file:
+                    data = file.readlines()
+                    # extend the TT by 1 m in N-S direction
+                    if shape == 'Square':
+                        data[1] = f'! genbox Tracker_Steel tube1 {panelx+2} {diameter} {diameter} | xform -t {-panelx/2 - 1} {-diameter/2} {-diameter/2}'
+                    elif shape == 'Round':
+                        data[1] = f'! genrev Tracker_Steel tube1 t*{panelx+2} {diameter/2} 32 | xform -ry 90 -t {-panelx/2 - 1} 0 0'
+
+                with open(rad_file, 'w') as file:
+                    file.writelines(data)
+
                 if structure:
                     mymodule.addFrame(frame_z=0.035, frame_material='Alu')
 
                     mymodule.addOmega(y_omega=panely*0.5, x_omega1=0.04,
-                                      omega_material='Alu')
+                                      omega_material='Tracker_Steel')
 
                 pitch = panely/gcr
 
@@ -99,43 +112,79 @@ for shape in shapes:
                 trackerkeys = sorted(trackerdict.keys())
 
                 # %% piles
+                tubelength = mymodule.scenex * nMods
+
+                pile_offsetsy = [-0.45*tubelength, -0.25*tubelength,
+                                 0, 0.25 * tubelength, 0.45*tubelength]
+
+                pile_offsetsx = [pitch*-2, pitch*-1, 0, pitch, pitch*2]
+
                 if structure:
-                    tubelength = mymodule.scenex * nMods
-                    pile_offsetsy = [-0.45*tubelength, -0.25*tubelength,
-                                     0, 0.25 * tubelength, 0.45*tubelength]
-                    pile_offsetsx = [pitch*-2, pitch*-1, 0, pitch, pitch*2]
 
                     name = 'Piles'
-                    text = '! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                        1, 1, height, pile_offsetsx[0]-0.09, pile_offsetsy[0])
-                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                        1, 2, height, pile_offsetsx[1]-0.09, pile_offsetsy[0])
-                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                        1, 3, height, pile_offsetsx[2]-0.09, pile_offsetsy[0])
-                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                        1, 4, height, pile_offsetsx[3]-0.09, pile_offsetsy[0])
-                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                        1, 5, height, pile_offsetsx[4]-0.09, pile_offsetsy[0])
+                    text = '! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                        1, 1, height, pile_offsetsx[0]-0.07, pile_offsetsy[0])
+                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                        1, 2, height, pile_offsetsx[1]-0.07, pile_offsetsy[0])
+                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                        1, 3, height, pile_offsetsx[2]-0.07, pile_offsetsy[0])
+                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                        1, 4, height, pile_offsetsx[3]-0.07, pile_offsetsy[0])
+                    text += '\r\n! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                        1, 5, height, pile_offsetsx[4]-0.07, pile_offsetsy[0])
+
+                    for i in range(1, 6):  # tracker row wise (x-direction)
+                        for j in range(1, 5):  # tracker pile wise (y-direction)
+                            text += '\r\n! genbox Tracker_Steel pile{}row{} 0.14 0.08 {} | xform -t {} {} 0'.format(
+                                j+1, i, height, pile_offsetsx[i-1]-0.07, pile_offsetsy[j])
+
+                    customObject = tracker.makeCustomObject(name, text)
 
                     for t in trackerkeys:
-                        for i in range(1, 6):  # tracker row wise (x-direction)
-                            for j in range(1, 5):  # tracker pile wise (y-direction)
-                                text += '\r\n! genbox Tracker_Steel pile{}row{} 0.18 0.08 {} | xform -t {} {} 0'.format(
-                                    j+1, i, height, pile_offsetsx[i-1], pile_offsetsy[j])
-
-                        customObject = tracker.makeCustomObject(name, text)
                         tracker.appendtoScene(
                             trackerdict[t]['radfile'], customObject, '!xform -rz 0')
 
                 # %% make oct files and run sim
-
                 customname = f'_{height}_{gcr}_{shape}_{albedo}_{structure}'
 
-                # trackerdict[30.0]['scene'].showScene()
+                customname = customname + '_outboard'
+
+                # trackerdict[-10.0]['scene'].showScene()
 
                 trackerdict = tracker.makeOct1axis(trackerdict=trackerdict)
 
-                trackerdict = tracker.analysis1axis(trackerdict, modWanted=11,
-                                                    rowWanted=3,
-                                                    customname=customname,
-                                                    sensorsy=sensorsy)
+                for t in trackerkeys:
+                    analysis = bifacial_radiance.AnalysisObj(
+                        trackerdict[t]['octfile'], tracker.basename)
+
+                    frontscan, backscan = analysis.moduleAnalysis(
+                        trackerdict[t]['scene'], sensorsy=sensorsy)
+
+                    linepts = analysis._linePtsMakeDict(backscan)
+                    linepts_front = analysis._linePtsMakeDict(frontscan)
+                    # modify the line scans
+                    # custom function modifyLineScan() in AnalysisObj class
+                    linepts_back_mod, linepts_front_mod = analysis.modifyLineScan(
+                        linepts, linepts_front, sensorsy, trackerdict[t])
+
+                    # do the rtrace, backDict contains the rgb results
+                    backDict = analysis._irrPlot(trackerdict[t]['octfile'],
+                                                 linepts_back_mod, customname+'_Back')
+
+                    frontDict = analysis._irrPlot(trackerdict[t]['octfile'],
+                                                  linepts_front_mod, customname+'_Front')
+
+                    # saves results to analysis object and to csv
+                    if frontDict is not None:
+                        if len(frontDict['Wm2']) != len(backDict['Wm2']):
+                            analysis.Wm2Front = np.mean(frontDict['Wm2'])
+                            analysis.Wm2Back = np.mean(backDict['Wm2'])
+                            analysis.backRatio = analysis.Wm2Back / \
+                                (analysis.Wm2Front + .001)
+                            analysis._saveResults(
+                                frontDict, reardata=None, savefile='irr%s.csv' % (customname+f'_Front_{str(t)}'))
+                            analysis._saveResults(
+                                data=None, reardata=backDict, savefile='irr%s.csv' % (customname+f'_Back_{str(t)}'))
+                        else:
+                            analysis._saveResults(
+                                frontDict, backDict, 'irr%s.csv' % (customname+f'_{str(t)}'))

@@ -265,8 +265,10 @@ trackerdict = tracker.makeScene1axis(trackerdict=trackerdict,
 # trackerdict['2022-01-03_1500']['scene'].sceneDict
 # trackerdict['2022-01-03_1600']['scene'].sceneDict
 
+# times = [i for i in trackerkeys for j in days if j in i]
+
 times = []
-for i in trackerkeys:  # is there a one liner for this?
+for i in trackerkeys:
     for j in days:
         if j in i:
             times.append(i)

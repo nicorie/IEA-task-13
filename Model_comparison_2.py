@@ -258,17 +258,17 @@ trackerdict_sub = dict((k, trackerdict[k]) for k in t if k in trackerdict)
 # it takes ~1 min per oct file (not realistic for 7 scenarios)
 trackerdict_sub = tracker.makeOct1axis(trackerdict=trackerdict_sub)
 
-mod01 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='low',
-                              customname=f'Scenario_{scenario}_Module_01',
+mod01 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='high',
+                              customname=f'Scenario_{scenario}_Module_01_high',
                               modWanted=1, rowWanted=3,
                               sensorsy=[sensorsy_front, sensorsy_back])
 
-mod13 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='low',
-                              customname=f'Scenario_{scenario}_Module_13',
+mod13 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='high',
+                              customname=f'Scenario_{scenario}_Module_13_high',
                               modWanted=13, rowWanted=3,
                               sensorsy=[sensorsy_front, sensorsy_back])
 
-mod25 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='low',
-                              customname=f'Scenario_{scenario}_Module_25',
+mod25 = tracker.analysis1axis(trackerdict=trackerdict_sub, accuracy='high',
+                              customname=f'Scenario_{scenario}_Module_25_high',
                               modWanted=25, rowWanted=3,
                               sensorsy=[sensorsy_front, sensorsy_back])
