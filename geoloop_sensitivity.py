@@ -20,20 +20,22 @@ shapes = ['Square', 'Round']
 heights = [1.0, 1.5, 2.0]
 gcrs = [0.3, 0.4, 0.5]
 albedos = [0.1, 0.2, 0.3, 0.4]
+locations = [(31.2, 29.95), (36.72, 3.25), (28.08, 30.73),
+             (23.97, 32.78), (27.05, 31.02)]
 
 lat, lon = 55.6, 12.1  # DTU Risø
 
 sensorsy = 21  # number of points to sample
 
 limit_angle = 60
-angledelta = 5  # sampling between the limit angles.
+angledelta = 1  # sampling between the limit angles.
 diameter = 0.145  # torque tube diameter
 backtrack = True
 cumulativesky = True
 
 nMods, nRows = 22, 5
 panelx, panely = 1.3, 2.1
-moduletype = 'Big-Module'
+moduletype = 'Big-Module2'
 zgap, ygap, xgap = 0.115, 0, 0
 
 testfolder = os.path.abspath(r'C:\Users\NRI\Bifacial_Radiance_Files')
@@ -149,7 +151,7 @@ for shape in shapes:
 
                 customname = customname + '_outboard'
 
-                # trackerdict[-10.0]['scene'].showScene()
+                # trackerdict[-11.0]['scene'].showScene()
 
                 trackerdict = tracker.makeOct1axis(trackerdict=trackerdict)
 

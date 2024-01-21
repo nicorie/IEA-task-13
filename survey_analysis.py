@@ -85,27 +85,28 @@ plt.grid()
 
 # %% tracker power
 
-Qs_pwr = ['How are the trackers moved? How many rows per motor?',
+Qs_pwr = ['How are the trackers moved? ',
+          'How many rows per motor?',
           'What is the maximum length of each row (m)?',
           'What is the maximum tilt angle?',
           'How are the tracker motors powered?',
           'Max N-S slope (%)', 'Max E-W slope (%)']
 
 df_pwr = df[Qs_pwr]
-df_pwr[Qs_pwr[1:3]] = df_pwr[Qs_pwr[1:3]].astype(float)
-df_pwr[Qs_pwr[4:6]] = df_pwr[Qs_pwr[4:6]].astype(float)
+df_pwr[Qs_pwr[1:4]] = df_pwr[Qs_pwr[1:4]].astype(float)
+df_pwr[Qs_pwr[5:7]] = df_pwr[Qs_pwr[5:7]].astype(float)
 # df_pwr = df_pwr[df_pwr[Qs_pwr[]].notna()]
 
 # df_pwr[df_pwr[Qs_pwr[2]].notna()].boxplot(Qs_pwr[2])
 # df_pwr[df_pwr[Qs_pwr[1]].notna()].boxplot(Qs_pwr[1])
 
-df_pwr['Grid'] = df[Qs_pwr[3]].str.contains('Grid')
+df_pwr['Grid'] = df[Qs_pwr[4]].str.contains('Grid')
 # df_pwr['PV String'] = df[Qs_pwr[3]].str.contains('PV String')
 # df_pwr['PV Panel'] = df[Qs_pwr[3]].str.contains('PV Panel')
 # here we don't know if it's a panel or string
-df_pwr['PV'] = df[Qs_pwr[3]].str.contains('PV')
+df_pwr['PV'] = df[Qs_pwr[4]].str.contains('PV')
 
-df_pwr.rename(columns={Qs_pwr[2]: 'Max tilt angle (°)'}, inplace=True)
+df_pwr.rename(columns={Qs_pwr[3]: 'Max tilt angle (°)'}, inplace=True)
 
 
 def pwrGroups(df):
@@ -118,13 +119,15 @@ def pwrGroups(df):
 
 
 df_pwr['Tracker Power'] = df_pwr.apply(pwrGroups, axis=1)
+df_pwr['Max Rows per Motor'] = df_pwr[Qs_pwr[1]].astype(str)
+df_pwr['Max Rows per Motor'].dropna()
 
-min_s = min(df_pwr['Max tilt angle (°)'])
 max_s = max(df_pwr['Max tilt angle (°)'])
-p = sns.relplot(data=df_pwr, x=Qs_pwr[4], y=Qs_pwr[1],
-                hue='Tracker Power', size='Max tilt angle (°)',
-                edgecolor=None, sizes=[min_s, min_s*2, min_s*3, max_s*3])
-# sizes=(min_s, max_s*2))
+p = sns.relplot(data=df_pwr, x=Qs_pwr[5], y=Qs_pwr[2],
+                hue='Max Rows per Motor', style='Tracker Power',
+                hue_order=['1.0', '2.0', '32.0'],
+                s=150)
+
 p.set_ylabels('Max Row Length (m)', fontsize=14)
 p.set_xlabels(fontsize=14)
 plt.grid()
