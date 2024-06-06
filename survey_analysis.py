@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.graphics.mosaicplot import mosaic
 
-PATH = r'C:\Users\NRI\OneDrive - EE\Skrivebord\IEA PVPS\Task 13\Survey'
-FILE = '\Bifi-Tracker-Survey-Summaries.xlsx'
+PATH = r'C:\Users\NRI\OneDrive - EE\Skrivebord\IEA PVPS\Task 13\Survey\Companies'
+FILE = '\Bifi-Tracker-Survey- Summaries.xlsx'
 
 df = pd.read_excel(PATH+FILE, skiprows=1)
 
@@ -266,3 +266,105 @@ fig, axs = plt.subplots(nrows=3, sharex=True)
 for i, year in enumerate(df_bifi_plt['Year'].unique()):
     sub = df_bifi_plt.loc[df_bifi_plt['Year'] == year]
     axs[i].hist(sub['% Bifacial'])
+
+# %% AgriPV
+
+plt.rcParams.update({'font.size': 13})
+
+Ns = [8, 4, 2, 2, 2]
+Qs = ['increased height', 'wider row spacing', 'tracking algorithm',
+      'agricultural sensors', '90° tilt for Agri work']
+Caps = [15.4, 3.6, 4.2, 0.4, 0.4]  # GW shipped in 2022
+
+Ns = [2, 2, 2, 4, 8]
+Qs = ['90° tilt for Agri work',
+      'agricultural sensors',
+      'tracking algorithm',
+      'wider row spacing',
+      'increased height']
+Caps = [0.4, 0.4, 4.2, 3.6, 15.4]
+
+fig, ax = plt.subplots()
+
+#rects1 = ax.bar(Qs, Ns, width=0.4, color='r')
+rects1 = ax.barh(Qs, Ns, height=0.4, color='r')
+
+#ax.set_ylim([0, 9])
+ax.set_xlabel('N Companies')
+ax.set_ylabel('Modification for Agrivoltaic Projects')
+# ax.set_xticklabels(Ns) #rotation=60)
+ax.grid(linestyle='dashed')
+
+
+def autolabel(rects):
+    """
+    Attach a text label above each bar displaying its height
+    """
+    for i, rect in enumerate(rects):
+        #height = rect.get_height()
+        width = rect.get_width()
+        # ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
+        #         #'%d' % str(Caps[i])+' GW',
+        #         f'{Caps[i]} GW',
+        #         ha='center', va='bottom')
+        ax.text(width + 0.7, rect.get_y() - rect.get_height()/20,
+                #'%d' % str(Caps[i])+' GW',
+                f'{Caps[i]} GW',
+                ha='center', va='bottom')
+
+
+autolabel(rects1)
+
+plt.show()
+
+# %% Hail
+plt.rcParams.update({'font.size': 12})
+Q = 'Describe if and how your trackers adjust to hailstorms'
+Ans_all = ['Automatic', 'Automatic', 'Manual or Automatic', 'Manual', 'Automatic', 'Not implemented',
+           'Automatic', 'Not implemented', 'Manual', 'Manual', 'Automatic', 'Automatic', 'Automatic',
+           'Did not Respond', 'Did not Respond', 'Did not Respond']
+
+Ns = []
+Ans_uniq = []
+for i in set(Ans_all):
+    Ns.append(Ans_all.count(i))
+    Ans_uniq.append(i)
+
+df_hail = pd.DataFrame(Ns).T
+df_hail.columns = Ans_uniq
+df_hail.reset_index()
+df_hail.index = ['']
+
+ax = df_hail.plot(kind='bar', stacked=True)
+
+ax.set_xlabel(Q, rotation=0)
+ax.set_ylabel('N Companies')
+ax.set_axisbelow(True)
+ax.grid(color='gray', linestyle='dashed')
+
+
+# https://stackoverflow.com/a/71515035/2901002
+
+
+def autopct_format(values):
+    def my_format(pct):
+        total = sum(values)
+        val = int(round(pct*total/100.0))
+        return 'N={v:d}\n({:.1f}%)'.format(pct, v=val)
+    return my_format
+
+#s = df['LoanStatus'].value_counts()
+#plt.pie(s,labels = s.index, autopct=autopct_format(s))
+
+
+df_hail2 = pd.DataFrame(Ans_all).value_counts()
+Ans_uniq2 = [i[0] for i in df_hail2.index]
+df_hail2.index = Ans_uniq2
+df.columns = ['Describe how your trackers adjust to hailstorms']
+
+plt.pie(df_hail2, labels=df_hail2.index, autopct=autopct_format(df_hail2))
+
+# %% Wind
+
+thresholds = [15, 16.667, 22.22, 17.88, 18, 18]
+t = np.array(thresholds)
